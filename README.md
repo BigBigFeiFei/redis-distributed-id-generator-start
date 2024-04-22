@@ -4,9 +4,9 @@ redis-distributed-id-generator-start启动器<br>
 1. 项目中引入依赖如下：<br>
 ```
 <dependency>
-   <groupId>com.zlf</groupId>
-   <artifactId>redis-distributed-id-generator-start</artifactId>
-   <version>1.0-SNAPSHOT</version>
+    <groupId>io.github.bigbigfeifei</groupId>
+    <artifactId>redis-distributed-id-generator-start</artifactId>
+    <version>1.0-SNAPSHOT</version>
 </dependency>
 ```        
 2. nacos配置如下：<br>
