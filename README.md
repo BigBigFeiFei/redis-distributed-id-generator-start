@@ -6,7 +6,7 @@ redis-distributed-id-generator-start启动器<br>
 <dependency>
     <groupId>io.github.bigbigfeifei</groupId>
     <artifactId>redis-distributed-id-generator-start</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 </dependency>
 ```        
 2. nacos配置如下：<br>
