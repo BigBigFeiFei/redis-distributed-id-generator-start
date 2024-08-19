@@ -3,7 +3,7 @@ package com.zlf.service;
 import com.zlf.config.RedisConfig;
 import com.zlf.config.RedisProperties;
 import com.zlf.dto.GeneratorIdDto;
-import com.zlf.enums.ScriptTypeEnum;
+import com.zlf.dto.NodeScriptShip;
 import com.zlf.utils.ZlfJedisUtils;
 import com.zlf.utils.ZlfRedisIdSpringUtils;
 import lombok.Data;
@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,12 +48,17 @@ public class ZlfRedisIdByScripts3Service extends ZlfRedisIdCommonService2 {
     @Override
     protected Long nextId(String tab) {
         List<RedisProperties> rps = new CopyOnWriteArrayList(redisConfig.getRps());
+        if (index == rps.size()) {
+            index = 0;
+        }
         int idx = index++ % rps.size();
         ZlfJedisUtils zlfJedisUtils = (ZlfJedisUtils) ZlfRedisIdSpringUtils.getBean(ZlfJedisUtils.class.getName());
         Jedis jedis = null;
         try {
-            jedis = zlfJedisUtils.getJedisByIndx(idx);
-            String esha = zlfJedisUtils.getEsha(idx + 1, ScriptTypeEnum.THREE);
+            NodeScriptShip nodeScriptShip = zlfJedisUtils.getNodeScriptShipByIndx(idx);
+            JedisPool jedisPool = nodeScriptShip.getJedisPool();
+            jedis = jedisPool.getResource();
+            String esha = nodeScriptShip.getScript();
             log.info("ZlfRedisIdByScripts3Service.esha:{}", esha);
             List<Long> result = (List<Long>) jedis.evalsha(esha, 2, tab, "" + idx);
             Long id = this.buildId(result.get(0), result.get(1), result.get(2),

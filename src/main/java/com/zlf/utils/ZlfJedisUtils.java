@@ -1,6 +1,7 @@
 package com.zlf.utils;
 
 import com.zlf.config.RedisProperties;
+import com.zlf.dto.NodeScriptShip;
 import com.zlf.enums.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -12,54 +13,54 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j
 public class ZlfJedisUtils {
     private final String clientName = "zlfRedisId";
-    private ConcurrentHashMap<Integer, String> scriptMap1 = new ConcurrentHashMap<>();
+/*    private ConcurrentHashMap<Integer, String> scriptMap1 = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Integer, String> scriptMap2 = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<Integer, String> scriptMap3 = new ConcurrentHashMap<>();
-    private List<JedisPool> jdpList = new CopyOnWriteArrayList<>();
+    private ConcurrentHashMap<Integer, String> scriptMap3 = new ConcurrentHashMap<>();*/
+    private List<NodeScriptShip> nodeScriptShipList = new CopyOnWriteArrayList<>();
 
     public ZlfJedisUtils(List<RedisProperties> rps) {
         for (int i = 0; i < rps.size(); i++) {
             Integer scriptIndex = i + 1;
             RedisProperties ps = rps.get(i);
-            Jedis jedis = this.createJds(ps);
+            JedisPool jedisPool = this.createJds(ps);
+            Jedis jedis = jedisPool.getResource();
 
             String luaScript1 = loadScript(ScriptTypeEnum.ONE.getDesc(), scriptIndex);
             String esha1 = jedis.scriptLoad(luaScript1);
-            scriptMap1.put(scriptIndex, esha1);
+            //scriptMap1.put(scriptIndex, esha1);
+            NodeScriptShip nodeScriptShip1 = new NodeScriptShip();
+            nodeScriptShip1.setJedisPool(jedisPool);
+            nodeScriptShip1.setScript(esha1);
+            nodeScriptShipList.add(nodeScriptShip1);
 
             String luaScript2 = loadScript(ScriptTypeEnum.TWO.getDesc(), scriptIndex);
             String esha2 = jedis.scriptLoad(luaScript2);
-            scriptMap2.put(scriptIndex, esha2);
+            //scriptMap2.put(scriptIndex, esha2);
+            NodeScriptShip nodeScriptShip2 = new NodeScriptShip();
+            nodeScriptShip2.setJedisPool(jedisPool);
+            nodeScriptShip2.setScript(esha2);
+            nodeScriptShipList.add(nodeScriptShip2);
 
             String luaScript3 = loadScript(ScriptTypeEnum.THREE.getDesc(), scriptIndex);
             String esha3 = jedis.scriptLoad(luaScript3);
-            scriptMap3.put(scriptIndex, esha3);
+            //scriptMap3.put(scriptIndex, esha3);
+            NodeScriptShip nodeScriptShip3 = new NodeScriptShip();
+            nodeScriptShip3.setJedisPool(jedisPool);
+            nodeScriptShip3.setScript(esha3);
+            nodeScriptShipList.add(nodeScriptShip3);
         }
     }
 
-    public Jedis getJedisByIndx(int index) {
-        return this.jdpList.get(index).getResource();
+    public NodeScriptShip getNodeScriptShipByIndx(int index) {
+        return this.nodeScriptShipList.get(index);
     }
 
-    public String getEsha(int index, ScriptTypeEnum scriptTypeEnum) {
-        String esha = "";
-        if (ScriptTypeEnum.ONE.getScriptType() == scriptTypeEnum.getScriptType()) {
-            esha = scriptMap1.get(index);
-        } else if (ScriptTypeEnum.TWO.getScriptType() == scriptTypeEnum.getScriptType()) {
-            esha = scriptMap2.get(index);
-        } else if (ScriptTypeEnum.THREE.getScriptType() == scriptTypeEnum.getScriptType()) {
-            esha = scriptMap3.get(index);
-        }
-        return esha;
-    }
-
-    private Jedis createJds(RedisProperties ps) {
+    private JedisPool createJds(RedisProperties ps) {
         JedisPoolConfig config = new JedisPoolConfig();
         //最大空闲连接数, 应用自己评估，不要超过每个实例最大的连接数
         config.setMaxIdle(ps.getMaxIdle());
@@ -70,9 +71,9 @@ public class ZlfJedisUtils {
         config.setLifo(true);
         config.setMinIdle(ps.getMinIdle());
         JedisPool jedisPool = StringUtils.isEmpty(ps.getRedisPass()) ? new JedisPool(config, ps.getRedisHost(), ps.getRedisPort(), ps.getConnectionTimeout(), ps.getSoTimeout(), null, ps.getDatabase(), clientName, false) : new JedisPool(config, ps.getRedisHost(), ps.getRedisPort(), ps.getConnectionTimeout(), ps.getSoTimeout(), ps.getRedisPass(), ps.getDatabase(), clientName, false);
-        Jedis jedis = jedisPool.getResource();
-        jdpList.add(jedisPool);
-        return jedis;
+        //Jedis jedis = jedisPool.getResource();
+        //jdpList.add(jedisPool);
+        return jedisPool;
     }
 
     /**

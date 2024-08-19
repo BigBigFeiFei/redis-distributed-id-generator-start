@@ -82,3 +82,4 @@ public class IdGcontroller {
 }
 
 ```
+说明：该版本优化了index下标超过对应关系数组后重置为0,新增NodeScriptShip类保存jedis节点及节点对应脚本的对应关系,使用CopyOnWriteArrayList(线程安全)保存节点及脚本关系及关系选择，此版本还未测试(应该没啥问题,哈哈,有啥问题可以联系我)！
